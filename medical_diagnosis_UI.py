@@ -25,7 +25,9 @@ diabetes_model = pickle.load(open('saved_models/diabetes_model.sav', 'rb'))
 
 heart_disease_model = pickle.load(open('saved_models/heart_disease_model.sav', 'rb'))
 
-parkinsons_model = pickle.load(open('saved_models/parkinsons_model.sav', 'rb'))
+breast_cancer_model = pickle.load(open('breast_cancer_model.sav', 'rb'))
+
+scaler = pickle.load(open('saved_models/breast_cancer_scaler.sav', 'rb'))
 
 # sidebar for navigation
 with st.sidebar:
@@ -33,7 +35,7 @@ with st.sidebar:
 
                            ['Diabetes Prediction',
                             'Heart Disease Prediction',
-                            'Parkinsons Prediction'],
+                            'Breast Cancer Prediction'],
                            menu_icon='hospital-fill',
                            icons=['activity', 'heart', 'person'],
                            default_index=0)
@@ -158,85 +160,103 @@ if selected == 'Heart Disease Prediction':
             heart_diagnosis = 'The person does not have any heart disease'
 
     st.success(heart_diagnosis)
+# ==============================
+# 🧬 Breast Cancer Prediction
+# ==============================
+if selected == "Breast Cancer Prediction":
+    st.title("🩺 Breast Cancer Prediction using Machine Learning")
 
-# Parkinson's Prediction Page
-if selected == "Parkinsons Prediction":
+    # --- Row 1 ---
+    col1, col2, col3, col4, col5 = st.columns(5, gap="medium")
 
-    # page title
-    st.title("Parkinson's Disease Prediction using ML")
+    # --- Row 1 ---
+    with col1:
+        radius_mean = st.number_input('Mean Radius', min_value=0.0, value=20.0, format="%.3f")
+    with col2:
+        texture_mean = st.number_input('Mean Texture', min_value=0.0, value=25.0, format="%.3f")
+    with col3:
+        perimeter_mean = st.number_input('Mean Perimeter', min_value=0.0, value=130.0, format="%.3f")
+    with col4:
+        area_mean = st.number_input('Mean Area', min_value=0.0, value=1000.0, format="%.3f")
+    with col5:
+        smoothness_mean = st.number_input('Mean Smoothness', min_value=0.0, value=0.1, format="%.3f")
+    
+    # --- Row 2 ---
+    with col1:
+        compactness_mean = st.number_input('Mean Compactness', min_value=0.0, value=0.2, format="%.3f")
+    with col2:
+        concavity_mean = st.number_input('Mean Concavity', min_value=0.0, value=0.3, format="%.3f")
+    with col3:
+        concave_points_mean = st.number_input('Mean Concave Points', min_value=0.0, value=0.15, format="%.3f")
+    with col4:
+        symmetry_mean = st.number_input('Mean Symmetry', min_value=0.0, value=0.2, format="%.3f")
+    with col5:
+        fractal_dimension_mean = st.number_input('Mean Fractal Dimension', min_value=0.0, value=0.06, format="%.3f")
+    
+    # --- Row 3 ---
+    with col1:
+        radius_se = st.number_input('Radius SE', min_value=0.0, value=1.0, format="%.3f")
+    with col2:
+        texture_se = st.number_input('Texture SE', min_value=0.0, value=1.5, format="%.3f")
+    with col3:
+        perimeter_se = st.number_input('Perimeter SE', min_value=0.0, value=2.0, format="%.3f")
+    with col4:
+        area_se = st.number_input('Area SE', min_value=0.0, value=20.0, format="%.3f")
+    with col5:
+        smoothness_se = st.number_input('Smoothness SE', min_value=0.0, value=0.02, format="%.3f")
+    
+    # --- Row 4 ---
+    with col1:
+        compactness_se = st.number_input('Compactness SE', min_value=0.0, value=0.03, format="%.3f")
+    with col2:
+        concavity_se = st.number_input('Concavity SE', min_value=0.0, value=0.04, format="%.3f")
+    with col3:
+        concave_points_se = st.number_input('Concave Points SE', min_value=0.0, value=0.02, format="%.3f")
+    with col4:
+        symmetry_se = st.number_input('Symmetry SE', min_value=0.0, value=0.02, format="%.3f")
+    with col5:
+        fractal_dimension_se = st.number_input('Fractal Dimension SE', min_value=0.0, value=0.002, format="%.3f")
+    
+    # --- Row 5 ---
+    with col1:
+        radius_worst = st.number_input('Worst Radius', min_value=0.0, value=25.0, format="%.3f")
+    with col2:
+        texture_worst = st.number_input('Worst Texture', min_value=0.0, value=30.0, format="%.3f")
+    with col3:
+        perimeter_worst = st.number_input('Worst Perimeter', min_value=0.0, value=170.0, format="%.3f")
+    with col4:
+        area_worst = st.number_input('Worst Area', min_value=0.0, value=1500.0, format="%.3f")
+    with col5:
+        smoothness_worst = st.number_input('Worst Smoothness', min_value=0.0, value=0.15, format="%.3f")
+    
+    # --- Row 6 ---
+    with col1:
+        compactness_worst = st.number_input('Worst Compactness', min_value=0.0, value=0.3, format="%.3f")
+    with col2:
+        concavity_worst = st.number_input('Worst Concavity', min_value=0.0, value=0.4, format="%.3f")
+    with col3:
+        concave_points_worst = st.number_input('Worst Concave Points', min_value=0.0, value=0.2, format="%.3f")
+    with col4:
+        symmetry_worst = st.number_input('Worst Symmetry', min_value=0.0, value=0.3, format="%.3f")
+    with col5:
+        fractal_dimension_worst = st.number_input('Worst Fractal Dimension', min_value=0.0, value=0.08, format="%.3f")
 
-    col1, col2, col3, col4, col5 = st.columns(5)
-    
-    with col1:
-        fo = st.number_input('Average Vocal Frequency (MDVP:Fo Hz)', value=150.0, step=0.1)
-    with col2:
-        fhi = st.number_input('Maximum Vocal Frequency (MDVP:Fhi Hz)', value=200.0, step=0.1)
-    with col3:
-        flo = st.number_input('Minimum Vocal Frequency (MDVP:Flo Hz)', value=100.0, step=0.1)
-    with col4:
-        jitter_percent = st.number_input('Jitter Percentage (MDVP:Jitter%)', value=0.003, step=0.0001)
-    with col5:
-        jitter_abs = st.number_input('Absolute Jitter (MDVP:Jitter(Abs))', value=0.0002, step=0.00001)
-    
-    with col1:
-        rap = st.number_input('Relative Average Perturbation (RAP)', value=0.003, step=0.00001)
-    with col2:
-        ppq = st.number_input('5-Point Period Perturbation Quotient (PPQ)', value=0.003, step=0.00001)
-    with col3:
-        ddp = st.number_input('Delta-Delta Perturbation (Jitter:DDP)', value=0.003, step=0.00001)
-    with col4:
-        shimmer = st.number_input('Shimmer (MDVP:Shimmer)', value=0.03, step=0.0001)
-    with col5:
-        shimmer_db = st.number_input('Shimmer in dB (MDVP:Shimmer(dB))', value=0.2, step=0.01)
-    
-    with col1:
-        apq3 = st.number_input('3-Point Amplitude Perturbation (Shimmer:APQ3)', value=0.02, step=0.0001)
-    with col2:
-        apq5 = st.number_input('5-Point Amplitude Perturbation (Shimmer:APQ5)', value=0.02, step=0.0001)
-    with col3:
-        apq = st.number_input('Amplitude Perturbation Quotient (MDVP:APQ)', value=0.02, step=0.0001)
-    with col4:
-        dda = st.number_input('Delta Delta Amplitude (Shimmer:DDA)', value=0.03, step=0.0001)
-    with col5:
-        nhr = st.number_input('Noise-to-Harmonics Ratio (NHR)', value=0.03, step=0.0001)
-    
-    with col1:
-        hnr = st.number_input('Harmonics-to-Noise Ratio (HNR)', value=20.0, step=0.1)
-    with col2:
-        rpde = st.number_input('Recurrence Period Density Entropy (RPDE)', value=0.5, step=0.01)
-    with col3:
-        dfa = st.number_input('Detrended Fluctuation Analysis (DFA)', value=0.5, step=0.01)
-    with col4:
-        spread1 = st.number_input('Nonlinear Measure Spread1', value=-5.0, step=0.01)
-    with col5:
-        spread2 = st.number_input('Nonlinear Measure Spread2', value=2.0, step=0.01)
-    
-    with col1:
-        d2 = st.number_input('Correlation Dimension (D2)', value=2.0, step=0.01)
-    with col2:
-        ppe = st.number_input('Pitch Period Entropy (PPE)', value=0.5, step=0.01)
+    # Collect all features in correct order
+    input_data = [
+        radius_mean, texture_mean, perimeter_mean, area_mean, smoothness_mean,
+        compactness_mean, concavity_mean, concave_points_mean, symmetry_mean, fractal_dimension_mean,
+        radius_se, texture_se, perimeter_se, area_se, smoothness_se,
+        compactness_se, concavity_se, concave_points_se, symmetry_se, fractal_dimension_se,
+        radius_worst, texture_worst, perimeter_worst, area_worst, smoothness_worst,
+        compactness_worst, concavity_worst, concave_points_worst, symmetry_worst, fractal_dimension_worst
+    ]
 
-    
-    # Prediction
-    parkinsons_diagnosis = ''
-    
-    if st.button("Parkinson's Test Result"):
-        # Collect all inputs into a list
-        user_input = [
-            fo, fhi, flo, jitter_percent, jitter_abs, rap, ppq, ddp,
-            shimmer, shimmer_db, apq3, apq5, apq, dda, nhr, hnr,
-            rpde, dfa, spread1, spread2, d2, ppe
-        ]
-    
-        # Convert inputs to float (already numeric, so optional)
-        user_input = [float(x) for x in user_input]
-    
-        # Make prediction
-        parkinsons_prediction = parkinsons_model.predict([user_input])
-    
-        if parkinsons_prediction[0] == 1:
-            parkinsons_diagnosis = "The person has Parkinson's disease"
+    # Scale and predict
+    breast_input_scaled = scaler.transform([input_data])
+    breast_prediction = breast_cancer_model.predict(breast_input_scaled)
+
+    if st.button("🔍 Breast Cancer Test Result"):
+        if breast_prediction[0] == 1:
+            st.error("⚠️ The model predicts: The person **has Breast Cancer (Malignant)**.")
         else:
-            parkinsons_diagnosis = "The person does not have Parkinson's disease"
-    
-    st.success(parkinsons_diagnosis)
+            st.success("✅ The model predicts: The person **does not have Breast Cancer (Benign)**.")
